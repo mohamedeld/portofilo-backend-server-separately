@@ -1,8 +1,7 @@
 const express = require("express");
-const {buildSchema} = require("graphql")
-const {graphqlHTTP} = require("express-graphql")
+const {ApolloServer,gql} = require("apollo-server-express")
 const cors = require("cors");
-const  portfolioResolvers  = require("./resolvers");
+const  {portfolioResolversQuery,portfolioResolversMutation}  = require("./resolvers");
 const  portfolioTypes  = require("./types");
 const app = express();
 
@@ -10,20 +9,29 @@ app.use(cors());
 
 
 
-const schema = buildSchema(`
+const typeDefs = gql`
   ${portfolioTypes}
   type Query{
     hello:String
     portfolio(id:ID):Portfolio
     portfolios:[Portfolio]
   }
-`);
+  type Mutation{
+    createPortfolio(input:PortfolioInput):Portfolio
+  }
+`;
 const resolvers ={
-  ...portfolioResolvers,
+  Query:{
+    ...portfolioResolversQuery,
+  },
+  Mutation:{
+    ...portfolioResolversMutation
+  }
+  
 }
-
+const apolloServer = new ApolloServer({typeDefs,resolvers});
+apolloServer.applyMiddleware({app})
 const port = 4000;
-app.use('/graphql',graphqlHTTP({schema,rootValue:resolvers,graphiql:true}));
 
 app.listen(port,()=>{
   console.log(`Server is running on port ${port}`)

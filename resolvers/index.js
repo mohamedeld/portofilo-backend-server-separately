@@ -37,13 +37,27 @@ const data = {
   ]
 }
 
-const portfolioResolvers = {
+const portfolioResolversQuery = {
   hello:()=> "welcome",
   portfolio:({id})=>{
     return data.portfolio.find(item=> item?._id === id);
   },
   portfolios:()=>{
     return data.portfolio
+  },
+  
+}
+const portfolioResolversMutation = {
+  createPortfolio:({input})=>{
+    const _id = require("crypto").randomBytes(10).toString('hex');
+    const newPortfolio = {...input}
+    newPortfolio._id = _id;
+    data.portfolio.push(newPortfolio);
+    return newPortfolio;
   }
 }
-module.exports=portfolioResolvers
+
+module.exports = {
+  portfolioResolversMutation,
+  portfolioResolversQuery
+}
