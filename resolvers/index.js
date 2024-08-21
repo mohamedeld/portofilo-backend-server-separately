@@ -1,5 +1,5 @@
 const data = {
-  portfolio:[
+  portfolios:[
     {
       _id: "sad87da79",
       title: 'Job in Netcentric',
@@ -39,21 +39,32 @@ const data = {
 
 const portfolioResolversQuery = {
   hello:()=> "welcome",
-  portfolio:({id})=>{
-    return data.portfolio.find(item=> item?._id === id);
+  portfolio:(root,{id})=>{
+    return data.portfolios.find(item=> item?._id === id);
   },
   portfolios:()=>{
-    return data.portfolio
+    return data.portfolios
   },
   
 }
 const portfolioResolversMutation = {
-  createPortfolio:({input})=>{
+  createPortfolio:(root,{input})=>{
     const _id = require("crypto").randomBytes(10).toString('hex');
     const newPortfolio = {...input}
     newPortfolio._id = _id;
-    data.portfolio.push(newPortfolio);
+    data.portfolios.push(newPortfolio);
     return newPortfolio;
+  },
+  updatePortfolio:(root,{id,input})=>{
+    const index = data?.portfolios?.findIndex(item=> item?._id === id);
+    const newPortfolio = {_id:id,...input}
+    data.portfolios[index] = newPortfolio;
+    return newPortfolio;
+  },
+  deletePortfolio:(root,{id})=>{
+    const index = data?.portfolios?.findIndex(item=> item?._id === id);
+    data?.portfolios?.splice(index,1);
+    return "deleted successfully"
   }
 }
 
