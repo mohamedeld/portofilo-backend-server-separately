@@ -1,8 +1,12 @@
 const express = require("express");
 const {ApolloServer,gql} = require("apollo-server-express")
 const cors = require("cors");
-const  {portfolioResolversQuery,portfolioResolversMutation}  = require("./resolvers");
-const  portfolioTypes  = require("./types");
+const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation}  = require("./resolvers");
+const  {portfolioTypes,userType}  = require("./types");
+const dotenv = require("dotenv");
+const connectDb = require("./database");
+dotenv.config();
+
 const app = express();
 
 app.use(cors());
@@ -11,6 +15,7 @@ app.use(cors());
 
 const typeDefs = gql`
   ${portfolioTypes}
+  ${userType}
   type Query{
     hello:String
     portfolio(id:ID):Portfolio
@@ -20,6 +25,8 @@ const typeDefs = gql`
     createPortfolio(input:PortfolioInput):Portfolio
     updatePortfolio(id:ID,input:PortfolioInput):Portfolio
     deletePortfolio(id:ID):String
+    signUp(input:signUpInput):String
+    signIn(input:signInInput):String
   }
 `;
 const resolvers ={
@@ -27,14 +34,30 @@ const resolvers ={
     ...portfolioResolversQuery,
   },
   Mutation:{
-    ...portfolioResolversMutation
+    ...portfolioResolversMutation,
+    ...userResolversMutation
   }
   
 }
-const apolloServer = new ApolloServer({typeDefs,resolvers});
-apolloServer.applyMiddleware({app})
-const port = 4000;
 
-app.listen(port,()=>{
-  console.log(`Server is running on port ${port}`)
-})
+
+async function startServer() {
+  try {
+    // Connect to the database first
+    await connectDb();
+
+    // Then initialize and start the Apollo Server
+    const apolloServer = new ApolloServer({ typeDefs, resolvers });
+    apolloServer.applyMiddleware({ app });
+
+    // Start listening on the specified port
+    const port = 4000;
+    app.listen(port, () => {
+      console.log(`Server is running on http://localhost:${port}`);
+    });
+  } catch (error) {
+    console.error("Failed to connect to the database:", error);
+    process.exit(1); // Exit the process with an error code
+  }
+}
+startServer();

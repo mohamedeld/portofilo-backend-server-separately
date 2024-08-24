@@ -1,4 +1,4 @@
-const portfolioTypes = `
+exports.portfolioTypes = `
   type Portfolio{
     _id:ID
     title:String
@@ -20,6 +20,24 @@ const portfolioTypes = `
     startDate:String
     endDate:String
   }
+`;
+
+
+exports.userType = `
+  input signUpInput{
+    username:String!
+    name:String!
+    email:String!
+    password:String!
+    passwordConfirmation:String!
+    avatar:String!
+  }
+  
+  input signInInput{
+    email:String!
+    password:String!
+  }
 `
 
-module.exports = portfolioTypes
+
+

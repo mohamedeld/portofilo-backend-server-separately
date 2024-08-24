@@ -1,74 +1,58 @@
-const data = {
-  portfolios:[
-    {
-      _id: "sad87da79",
-      title: 'Job in Netcentric',
-      company: 'Netcentric',
-      companyWebsite: 'www.google.com',
-      location: 'Spain, Barcelona',
-      jobTitle: 'Engineer',
-      description: 'Doing something, programing....',
-      startDate: '01/01/2014',
-      endDate: '01/01/2016',
-      
-    },
-    {
-      _id: "da789ad1",
-      title: 'Job in Siemens',
-      company: 'Siemens',
-      companyWebsite: 'www.google.com',
-      location: 'Slovakia, Kosice',
-      jobTitle: 'Software Engineer',
-      description: 'Responsoble for parsing framework for JSON medical data.',
-      startDate: '01/01/2011',
-      endDate: '01/01/2013'
-    },
-    {
-      _id: "sadcxv9",
-      title: 'Work in USA',
-      company: 'WhoKnows',
-      companyWebsite: 'www.google.com',
-      location: 'USA, Montana',
-      jobTitle: 'Housekeeping',
-      description: 'So much responsibility....Overloaaaaaad',
-      startDate: '01/01/2010',
-      endDate: '01/01/2011'
-    }
-  ]
-}
+const Portfolio = require("../models/portfolio");
+const User = require("../models/user");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const portfolioResolversQuery = {
   hello:()=> "welcome",
-  portfolio:(root,{id})=>{
-    return data.portfolios.find(item=> item?._id === id);
+  portfolio:async (root,{id})=>{
+    return await Portfolio.findById(id);
   },
-  portfolios:()=>{
-    return data.portfolios
+  portfolios:async ()=>{
+    return await Portfolio.find({});
   },
   
 }
 const portfolioResolversMutation = {
-  createPortfolio:(root,{input})=>{
-    const _id = require("crypto").randomBytes(10).toString('hex');
-    const newPortfolio = {...input}
-    newPortfolio._id = _id;
-    data.portfolios.push(newPortfolio);
+  createPortfolio:async (root,{input})=>{
+    const newPortfolio = await Portfolio.create(input);
     return newPortfolio;
   },
-  updatePortfolio:(root,{id,input})=>{
-    const index = data?.portfolios?.findIndex(item=> item?._id === id);
-    const newPortfolio = {_id:id,...input}
-    data.portfolios[index] = newPortfolio;
+  updatePortfolio:async (root,{id,input})=>{
+    const newPortfolio = await Portfolio.findByIdAndUpdate(id,input,{new:true});
     return newPortfolio;
   },
-  deletePortfolio:(root,{id})=>{
-    const index = data?.portfolios?.findIndex(item=> item?._id === id);
-    data?.portfolios?.splice(index,1);
+  deletePortfolio:async (root,{id})=>{
+    await Portfolio.findByIdAndDelete(id);
     return "deleted successfully"
   }
 }
 
+const userResolversMutation = {
+  signUp:async(root,{input})=>{
+    if(input?.password !== input?.passwordConfirmation){
+      throw new Error("Password does not match");
+    }
+    const newUser = await User.create(input);
+    return "Signed up successfully"
+  },
+  signIn:async(root,{input})=>{
+    const emailIsExit = await User.findOne({email:input?.email});
+    if(!emailIsExit){
+      throw new Error("Email is not found")
+    }
+    const hashPassword = await bcrypt.compare(input?.password,emailIsExit?.password);
+    if(!hashPassword){
+      throw new Error("password is not correct");
+    }
+    const token = jwt.sign({userId:emailIsExit?._id},process.env.SECRET_TOKEN,{expiresIn:process.env.EXPIRES_AT});
+    return token;
+  }
+}
+
+
 module.exports = {
   portfolioResolversMutation,
-  portfolioResolversQuery
+  portfolioResolversQuery,
+  userResolversMutation
 }
