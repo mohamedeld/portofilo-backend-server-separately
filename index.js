@@ -4,8 +4,19 @@ const cors = require("cors");
 const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation}  = require("./resolvers");
 const  {portfolioTypes,userType}  = require("./types");
 const dotenv = require("dotenv");
-const connectDb = require("./database");
+const session = require("express-session");
+const {connectDb,store} = require("./database");
+
 dotenv.config();
+
+const sess = {
+  name:'portfolio-session',
+  secret:process.env.SECRET_TOKEN,
+  cookie:{maxAge:2*60*60*1000},
+  resave:false,
+  saveUninitialized:false,
+  store
+}
 
 const app = express();
 
@@ -46,6 +57,7 @@ async function startServer() {
     // Connect to the database first
     await connectDb();
 
+    app.use(session(sess))
     // Then initialize and start the Apollo Server
     const apolloServer = new ApolloServer({ typeDefs, resolvers });
     apolloServer.applyMiddleware({ app });
