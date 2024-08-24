@@ -6,7 +6,7 @@ const  {portfolioTypes,userType}  = require("./types");
 const dotenv = require("dotenv");
 const session = require("express-session");
 const {connectDb,store} = require("./database");
-
+const context = require("./middleware/isAuthenticated");
 dotenv.config();
 
 const sess = {
@@ -38,6 +38,7 @@ const typeDefs = gql`
     deletePortfolio(id:ID):String
     signUp(input:signUpInput):String
     signIn(input:signInInput):String
+    logout:String
   }
 `;
 const resolvers ={
@@ -59,7 +60,7 @@ async function startServer() {
 
     app.use(session(sess))
     // Then initialize and start the Apollo Server
-    const apolloServer = new ApolloServer({ typeDefs, resolvers });
+    const apolloServer = new ApolloServer({ typeDefs, resolvers,context });
     apolloServer.applyMiddleware({ app });
 
     // Start listening on the specified port

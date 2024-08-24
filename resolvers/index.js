@@ -36,7 +36,7 @@ const userResolversMutation = {
     const newUser = await User.create(input);
     return "Signed up successfully"
   },
-  signIn:async(root,{input})=>{
+  signIn:async(root,{input},{res})=>{
     const emailIsExit = await User.findOne({email:input?.email});
     if(!emailIsExit){
       throw new Error("Email is not found")
@@ -46,8 +46,17 @@ const userResolversMutation = {
       throw new Error("password is not correct");
     }
     const token = jwt.sign({userId:emailIsExit?._id},process.env.SECRET_TOKEN,{expiresIn:process.env.EXPIRES_AT});
+    res.cookie("token",token,{
+      httpOnly:true,
+      maxAge:9 * 60 * 60 * 1000, // 9 hours
+    })
     return token;
-  }
+  },
+  logout: async (root, args, { res }) => {
+    // Clear the authentication token from the cookies
+    res.clearCookie("token");
+    return "Logged out successfully";
+  },
 }
 
 
