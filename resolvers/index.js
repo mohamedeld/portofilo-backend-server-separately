@@ -29,14 +29,15 @@ const portfolioResolversMutation = {
 }
 
 const userResolversMutation = {
-  signUp:async(root,{input})=>{
+  signUp:async(root,{input},{res})=>{
     if(input?.password !== input?.passwordConfirmation){
       throw new Error("Password does not match");
     }
     const newUser = await User.create(input);
-    return "Signed up successfully"
+    const token = jwt.sign({userId:newUser?._id},process.env.SECRET_TOKEN,{expiresIn:process.env.EXPIRES_AT});
+    return token;
   },
-  signIn:async(root,{input},{res})=>{
+  signIn:async(root,{input},context)=>{
     const emailIsExit = await User.findOne({email:input?.email});
     if(!emailIsExit){
       throw new Error("Email is not found")
@@ -45,11 +46,8 @@ const userResolversMutation = {
     if(!hashPassword){
       throw new Error("password is not correct");
     }
+    
     const token = jwt.sign({userId:emailIsExit?._id},process.env.SECRET_TOKEN,{expiresIn:process.env.EXPIRES_AT});
-    res.cookie("token",token,{
-      httpOnly:true,
-      maxAge:9 * 60 * 60 * 1000, // 9 hours
-    })
     return token;
   },
   logout: async (root, args, { res }) => {
@@ -57,11 +55,34 @@ const userResolversMutation = {
     res.clearCookie("token");
     return "Logged out successfully";
   },
+ 
 }
-
+const userResolversQuery = {
+  getSingleUser:async(root,{id},{user,isAuthenticated})=>{
+    
+    if (!isAuthenticated) {
+      throw new Error('Unauthorized access');
+    }
+    const fetchedUser = await User.findById(id).select("username name email avatar role");
+    if(!fetchedUser) {
+      throw new Error('User not found');
+    }
+    return fetchedUser;
+  },
+  getAuthUser:(root,args,{user,isAuthenticated})=>{
+    if(isAuthenticated){
+      return user;
+    }
+  },
+  getAllUsers:async()=>{
+    const users = await User.find({}).select("username name email avatar role");
+    return users;
+  }
+}
 
 module.exports = {
   portfolioResolversMutation,
   portfolioResolversQuery,
-  userResolversMutation
+  userResolversMutation,
+  userResolversQuery
 }

@@ -37,6 +37,15 @@ exports.userType = `
     email:String!
     password:String!
   }
+
+  type userData{
+  _id: ID!
+    username:String
+    name:String
+    email:String
+    avatar:String
+    role:String
+  }
 `
 
 

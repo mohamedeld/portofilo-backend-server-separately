@@ -1,13 +1,14 @@
 const express = require("express");
 const {ApolloServer,gql} = require("apollo-server-express")
 const cors = require("cors");
-const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation}  = require("./resolvers");
+const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation, userResolversQuery}  = require("./resolvers");
 const  {portfolioTypes,userType}  = require("./types");
 const dotenv = require("dotenv");
 const session = require("express-session");
 const {connectDb,store} = require("./database");
 const context = require("./middleware/isAuthenticated");
 dotenv.config();
+const cookieParser = require("cookie-parser");
 
 const sess = {
   name:'portfolio-session',
@@ -21,7 +22,7 @@ const sess = {
 const app = express();
 
 app.use(cors());
-
+app.use(cookieParser())
 
 
 const typeDefs = gql`
@@ -31,6 +32,9 @@ const typeDefs = gql`
     hello:String
     portfolio(id:ID):Portfolio
     portfolios:[Portfolio]
+    getSingleUser(id:ID):userData
+    getAllUsers:[userData]
+    getAuthUser:userData
   }
   type Mutation{
     createPortfolio(input:PortfolioInput):Portfolio
@@ -44,6 +48,7 @@ const typeDefs = gql`
 const resolvers ={
   Query:{
     ...portfolioResolversQuery,
+    ...userResolversQuery
   },
   Mutation:{
     ...portfolioResolversMutation,
