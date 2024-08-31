@@ -58,4 +58,13 @@ exports.categoryTypes = `
 `
 
 
-
+exports.topicTypes = `
+  type TopicData{
+    _id:ID
+    title:String
+    content:String
+    slug:String
+    forumCategory:String
+    user:String
+  }
+`

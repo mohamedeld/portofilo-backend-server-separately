@@ -1,8 +1,8 @@
 const express = require("express");
 const {ApolloServer,gql} = require("apollo-server-express")
 const cors = require("cors");
-const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation, userResolversQuery, categoryQuery}  = require("./resolvers");
-const  {portfolioTypes,userType, categoryTypes}  = require("./types");
+const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation, userResolversQuery, categoryQuery, topicResolversQuery}  = require("./resolvers");
+const  {portfolioTypes,userType, categoryTypes, topicTypes}  = require("./types");
 const dotenv = require("dotenv");
 const session = require("express-session");
 const {connectDb,store} = require("./database");
@@ -29,6 +29,7 @@ const typeDefs = gql`
   ${portfolioTypes}
   ${userType}
   ${categoryTypes}
+  ${topicTypes}
   type Query{
     hello:String
     portfolio(id:ID):Portfolio
@@ -38,6 +39,9 @@ const typeDefs = gql`
     getAuthUser:userData
     allCategory:[CategoryData]
     singleCategory(id:ID):CategoryData
+    allTopics:[TopicData]
+    getTopic(id:ID):TopicData
+    getTopicByCategory(forumCategory:ID):[TopicData]
   }
   type Mutation{
     createPortfolio(input:PortfolioInput):Portfolio
@@ -52,7 +56,8 @@ const resolvers ={
   Query:{
     ...portfolioResolversQuery,
     ...userResolversQuery,
-    ...categoryQuery
+    ...categoryQuery,
+    ...topicResolversQuery
   },
   Mutation:{
     ...portfolioResolversMutation,

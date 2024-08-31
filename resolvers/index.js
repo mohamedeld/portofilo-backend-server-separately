@@ -1,5 +1,6 @@
 const Category = require("../models/Category");
 const Portfolio = require("../models/portfolio");
+const Topics = require("../models/topics");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -95,11 +96,31 @@ const categoryQuery ={
   }
 }
 
-
+const topicResolversQuery = {
+  allTopics: async ()=>{
+    const topics = await Topics.find({})
+    return topics;
+  },
+  getTopic:async(root,{id})=>{
+    if(!id){
+      throw new Error("id is not provided")
+    }
+    const topic = await Topics.findById(id);
+    return topic;
+  },
+  getTopicByCategory:async (root,{forumCategory})=>{
+    if(!forumCategory){
+      throw new Error("category id should be provided");
+    }
+    const topicCategory =await Topics.find({forumCategory:forumCategory}).exec();
+    return topicCategory
+  }
+}
 module.exports = {
   portfolioResolversMutation,
   portfolioResolversQuery,
   userResolversMutation,
   userResolversQuery,
-  categoryQuery
+  categoryQuery,
+  topicResolversQuery
 }
