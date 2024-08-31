@@ -1,8 +1,8 @@
 const express = require("express");
 const {ApolloServer,gql} = require("apollo-server-express")
 const cors = require("cors");
-const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation, userResolversQuery}  = require("./resolvers");
-const  {portfolioTypes,userType}  = require("./types");
+const  {portfolioResolversQuery,portfolioResolversMutation, userResolversMutation, userResolversQuery, categoryQuery}  = require("./resolvers");
+const  {portfolioTypes,userType, categoryTypes}  = require("./types");
 const dotenv = require("dotenv");
 const session = require("express-session");
 const {connectDb,store} = require("./database");
@@ -28,6 +28,7 @@ app.use(cookieParser())
 const typeDefs = gql`
   ${portfolioTypes}
   ${userType}
+  ${categoryTypes}
   type Query{
     hello:String
     portfolio(id:ID):Portfolio
@@ -35,20 +36,23 @@ const typeDefs = gql`
     getSingleUser(id:ID):userData
     getAllUsers:[userData]
     getAuthUser:userData
+    allCategory:[CategoryData]
+    singleCategory(id:ID):CategoryData
   }
   type Mutation{
     createPortfolio(input:PortfolioInput):Portfolio
     updatePortfolio(id:ID,input:PortfolioInput):Portfolio
     deletePortfolio(id:ID):String
     signUp(input:signUpInput):String
-    signIn(input:signInInput):String
+    signIn(input:signInInput):userData
     logout:String
   }
 `;
 const resolvers ={
   Query:{
     ...portfolioResolversQuery,
-    ...userResolversQuery
+    ...userResolversQuery,
+    ...categoryQuery
   },
   Mutation:{
     ...portfolioResolversMutation,

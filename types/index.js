@@ -46,6 +46,15 @@ exports.userType = `
     avatar:String
     role:String
   }
+`;
+
+exports.categoryTypes = `
+  type CategoryData{
+    _id:ID
+    title:String
+    subTitle:String
+    slug:String
+  }
 `
 
 

@@ -1,3 +1,4 @@
+const Category = require("../models/Category");
 const Portfolio = require("../models/portfolio");
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
@@ -48,7 +49,7 @@ const userResolversMutation = {
     }
     
     const token = jwt.sign({userId:emailIsExit?._id},process.env.SECRET_TOKEN,{expiresIn:process.env.EXPIRES_AT});
-    return token;
+    return emailIsExit;
   },
   logout: async (root, args, { res }) => {
     // Clear the authentication token from the cookies
@@ -80,9 +81,25 @@ const userResolversQuery = {
   }
 }
 
+const categoryQuery ={
+  allCategory:async ()=>{
+    const allCategory = await Category.find({});
+    return allCategory;
+  },
+  singleCategory:async(root,{id})=>{
+    if(!id){
+      throw new Error("id is not provided");
+    }
+    const category = await Category.findById(id);
+    return category;
+  }
+}
+
+
 module.exports = {
   portfolioResolversMutation,
   portfolioResolversQuery,
   userResolversMutation,
-  userResolversQuery
+  userResolversQuery,
+  categoryQuery
 }
